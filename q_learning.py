@@ -31,17 +31,19 @@ class SimpleAgent(Agent):
 class QAgent(Agent):
     def __init__(self):
         # self.states = np.zeros(shape=(4, 4, 4, 4))
-        self.states = np.zeros(shape=(10, 10, 10, 10))
+        self.states = np.zeros(shape=(6, 6))
+        # self.states = np.zeros(shape=(10, 10, 10, 10))
         self.q_table = np.zeros(shape=(np.size(self.states), 2))
+        # self.q_table = np.random.randn(np.size(self.states), 2)
         # self.last_state = None
         # self.last_action = None
-        self.learning_rate = 0.1
-        # self.learning_rate = 1
-        self.discount_factor = 0.97
+        # self.learning_rate = 0.05
+        self.learning_rate = 0.3
+        self.discount_factor = 1
+        # self.discount_factor = 0.97
         self.memory = []
+        self.memory_size = 50
 
-    # TODO split into 3 functions (act, remember/save, learn)
-    # TODO add negative reward on termination of the game
     def step(self, observation, reward, done, info, random_prob=0):
         state = self.observation_to_state(observation)
 
@@ -50,7 +52,7 @@ class QAgent(Agent):
                 (1 - self.learning_rate) * self.q_table[self.last_state, self.last_action]\
                 + self.learning_rate * (reward + self.discount_factor * np.max(self.q_table[state]))
 
-        if np.all(self.q_table[state]):
+        if np.any(self.q_table[state]):
             # print(f'ALL! state: {state}')
             action = np.argmax(self.q_table[state])
         else:
@@ -81,9 +83,10 @@ class QAgent(Agent):
         state = self.observation_to_state(observation)
 
         if np.any(self.q_table[state]):
-            # print(f'ALL! state: {state}')
+            # print(f'ANY! state: {state}')
             action = np.argmax(self.q_table[state])
         else:
+            # print(f'NONE! state: {state}')
             action = np.random.choice([0, 1])
 
         action = int(round(action))
@@ -99,10 +102,12 @@ class QAgent(Agent):
         state = self.observation_to_state(prev_observation)
         next_state = self.observation_to_state(observation)
         self.memory.append((state, action, next_state, reward, terminal))
+        if len(self.memory) > self.memory_size:
+            self.memory.pop(0)
 
     def experience_replay(self, batch_size=10):
-        # batch = np.random.choice(self.memory, batch_size)
-        batch = random.choices(self.memory, k=batch_size)
+        # batch = random.choices(self.memory, k=batch_size)
+        batch = [self.memory[-1]]
         for x in batch:
             (state, action, next_state, reward, terminal) = x
             self.q_table[state, action] = \
@@ -121,17 +126,17 @@ class QAgent(Agent):
     #     state_idx = state[0] + state[1] * 10 + state[2] * 100 + state[3] * 1000
     #     return state_idx
 
-    def observation_to_state(self, observation):
-        state = observation
-        state[0] = int(state[0] * 20)
-        state[1] = int(state[1] * 20)
-        state[2] = int(state[2] * 40)
-        state[3] = int(state[3] * 20)
-
-        state = [int(max(min(x+5-1, 9), 0)) for x in state]
-
-        state_idx = state[0] + state[1] * 10 + state[2] * 100 + state[3] * 1000
-        return state_idx
+    # def observation_to_state(self, observation):
+    #     state = observation
+    #     state[0] = int(state[0] * 20)
+    #     state[1] = int(state[1] * 20)
+    #     state[2] = int(state[2] * 40)
+    #     state[3] = int(state[3] * 20)
+    #
+    #     state = [int(max(min(x+5-1, 9), 0)) for x in state]
+    #
+    #     state_idx = state[0] + state[1] * 10 + state[2] * 100 + state[3] * 1000
+    #     return state_idx
 
     # def observation_to_state(self, observation):
     #     state = observation
@@ -146,6 +151,16 @@ class QAgent(Agent):
     #
     #     state_idx = state[0] + state[1] * 4 + state[2] * 16 + state[3] * 64
     #     return state_idx
+
+    def observation_to_state(self, observation):
+        state = []
+        state.append(int(np.digitize(observation[2], [-0.1, -0.02, 0, 0.02, 0.1])))
+        state.append(int(np.digitize(observation[3], [-0.9, -0.1, 0, 0.1, 0.9])))
+
+        # print(f'state: {state}')
+
+        state_idx = state[0] + state[1] * 6
+        return state_idx
 
 
 def play(games, random_scale=0.4, verbose=False):
@@ -169,7 +184,7 @@ def play(games, random_scale=0.4, verbose=False):
             random_prob = random_scale * ((games - i) / games) ** 4
             action = agent.act(prev_observation, random_prob=random_prob)
             observation, reward, done, info = env.step(action)
-            reward = reward if not done else -reward
+            reward = reward if not done else -10
             agent.remember(prev_observation, action, observation, reward, done)
             agent.experience_replay()
             prev_observation = observation
@@ -178,7 +193,7 @@ def play(games, random_scale=0.4, verbose=False):
             steps += 1
 
         results.append(steps)
-        # print(f'game {i} finished after {steps} steps' + '*'.rjust(steps, '|'))
+        print(f'game {i} finished after {steps} steps' + '*'.rjust(steps, '|'))
 
     env.close()
 
@@ -190,8 +205,10 @@ def play(games, random_scale=0.4, verbose=False):
 
 
 def plot_results(results):
-    plt.plot(np.unique(range(len(results))), np.poly1d(np.polyfit(range(len(results)), results, 1))(np.unique(range(len(results)))), color='r')
-    plt.scatter(range(len(results)), results, marker='.')
+    x = range(len(results))
+    y = results
+    plt.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)), color='r')
+    plt.scatter(x, y, marker='.')
     plt.grid(which='both')
     plt.show()
 
@@ -204,4 +221,4 @@ def save_agent(filename='q_agent.pkl'):
 if __name__ == '__main__':
     env = gym.make('CartPole-v0')
     agent = QAgent()
-    results = play(1000, verbose=False, random_scale=0)
+    results = play(200, verbose=False, random_scale=0.1)
