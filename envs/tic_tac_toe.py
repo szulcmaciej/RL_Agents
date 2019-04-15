@@ -48,6 +48,14 @@ class TicTacToeEnv(gym.Env):
         'video.frames_per_second': 50
     }
 
+    rewards = {
+        'win': 1.0,
+        'lose': -1.0,
+        'draw': 0.0,
+        'illegal': -100.0,
+        'playing': 0.0
+    }
+
     def __init__(self):
         self.board_size = 3
 
@@ -77,32 +85,44 @@ class TicTacToeEnv(gym.Env):
         board, player = state
 
         action_board_pos = (action // self.board_size, action % self.board_size)
+        print(action_board_pos)
         # check if move legal
-        if board[action_board_pos[0], action_board_pos[1]] is not 0:
+        if board[action_board_pos[0], action_board_pos[1]] != 0:
             # illegal move
-            reward = -1000.0
+            print('ILLEGAL MOVE')
+            reward = self.rewards['illegal']
             done = False
+            if player == 1:
+                player = 2
+            elif player == 2:
+                player = 1
         else:
             # legal move
+            # print('LEGAL MOVE')
+            # update board
             board[action_board_pos[0], action_board_pos[1]] = player
 
             # check if player won
             mask = board == player
             player_won = mask.all(0).any() | mask.all(1).any()
             player_won |= np.diag(mask).all() | np.diag(mask[:, ::-1]).all()
+            draw = np.count_nonzero(board == 0) == 0
 
             if player_won:
-                reward = 1.0
+                reward = self.rewards['win']
+            elif draw:
+                reward = self.rewards['draw']
             else:
-                reward = 0.0
+                # still playing, change player
+                reward = self.rewards['playing']
                 if player == 1:
                     player = 2
                 elif player == 2:
                     player = 1
 
-                self.state = [board, player]
+            done = player_won or draw
 
-            done = player_won
+        self.state = [board, player]
 
         return self.state, reward, done, {}
 
@@ -112,58 +132,64 @@ class TicTacToeEnv(gym.Env):
         self.steps_beyond_done = None
         return self.state
 
+    # def render(self, mode='human'):
+    #     screen_width = 600
+    #     screen_height = 400
+    #
+    #     world_width = self.x_threshold * 2
+    #     scale = screen_width / world_width
+    #     carty = 100  # TOP OF CART
+    #     polewidth = 10.0
+    #     polelen = scale * (2 * self.length)
+    #     cartwidth = 50.0
+    #     cartheight = 30.0
+    #
+    #     if self.viewer is None:
+    #         from gym.envs.classic_control import rendering
+    #         self.viewer = rendering.Viewer(screen_width, screen_height)
+    #         l, r, t, b = -cartwidth / 2, cartwidth / 2, cartheight / 2, -cartheight / 2
+    #         axleoffset = cartheight / 4.0
+    #         cart = rendering.FilledPolygon([(l, b), (l, t), (r, t), (r, b)])
+    #         self.carttrans = rendering.Transform()
+    #         cart.add_attr(self.carttrans)
+    #         self.viewer.add_geom(cart)
+    #         l, r, t, b = -polewidth / 2, polewidth / 2, polelen - polewidth / 2, -polewidth / 2
+    #         pole = rendering.FilledPolygon([(l, b), (l, t), (r, t), (r, b)])
+    #         pole.set_color(.8, .6, .4)
+    #         self.poletrans = rendering.Transform(translation=(0, axleoffset))
+    #         pole.add_attr(self.poletrans)
+    #         pole.add_attr(self.carttrans)
+    #         self.viewer.add_geom(pole)
+    #         self.axle = rendering.make_circle(polewidth / 2)
+    #         self.axle.add_attr(self.poletrans)
+    #         self.axle.add_attr(self.carttrans)
+    #         self.axle.set_color(.5, .5, .8)
+    #         self.viewer.add_geom(self.axle)
+    #         self.track = rendering.Line((0, carty), (screen_width, carty))
+    #         self.track.set_color(0, 0, 0)
+    #         self.viewer.add_geom(self.track)
+    #
+    #         self._pole_geom = pole
+    #
+    #     if self.state is None: return None
+    #
+    #     # Edit the pole polygon vertex
+    #     pole = self._pole_geom
+    #     l, r, t, b = -polewidth / 2, polewidth / 2, polelen - polewidth / 2, -polewidth / 2
+    #     pole.v = [(l, b), (l, t), (r, t), (r, b)]
+    #
+    #     x = self.state
+    #     cartx = x[0] * scale + screen_width / 2.0  # MIDDLE OF CART
+    #     self.carttrans.set_translation(cartx, carty)
+    #     self.poletrans.set_rotation(-x[2])
+    #
+    #     return self.viewer.render(return_rgb_array=mode == 'rgb_array')
+
     def render(self, mode='human'):
-        screen_width = 600
-        screen_height = 400
-
-        world_width = self.x_threshold * 2
-        scale = screen_width / world_width
-        carty = 100  # TOP OF CART
-        polewidth = 10.0
-        polelen = scale * (2 * self.length)
-        cartwidth = 50.0
-        cartheight = 30.0
-
-        if self.viewer is None:
-            from gym.envs.classic_control import rendering
-            self.viewer = rendering.Viewer(screen_width, screen_height)
-            l, r, t, b = -cartwidth / 2, cartwidth / 2, cartheight / 2, -cartheight / 2
-            axleoffset = cartheight / 4.0
-            cart = rendering.FilledPolygon([(l, b), (l, t), (r, t), (r, b)])
-            self.carttrans = rendering.Transform()
-            cart.add_attr(self.carttrans)
-            self.viewer.add_geom(cart)
-            l, r, t, b = -polewidth / 2, polewidth / 2, polelen - polewidth / 2, -polewidth / 2
-            pole = rendering.FilledPolygon([(l, b), (l, t), (r, t), (r, b)])
-            pole.set_color(.8, .6, .4)
-            self.poletrans = rendering.Transform(translation=(0, axleoffset))
-            pole.add_attr(self.poletrans)
-            pole.add_attr(self.carttrans)
-            self.viewer.add_geom(pole)
-            self.axle = rendering.make_circle(polewidth / 2)
-            self.axle.add_attr(self.poletrans)
-            self.axle.add_attr(self.carttrans)
-            self.axle.set_color(.5, .5, .8)
-            self.viewer.add_geom(self.axle)
-            self.track = rendering.Line((0, carty), (screen_width, carty))
-            self.track.set_color(0, 0, 0)
-            self.viewer.add_geom(self.track)
-
-            self._pole_geom = pole
-
-        if self.state is None: return None
-
-        # Edit the pole polygon vertex
-        pole = self._pole_geom
-        l, r, t, b = -polewidth / 2, polewidth / 2, polelen - polewidth / 2, -polewidth / 2
-        pole.v = [(l, b), (l, t), (r, t), (r, b)]
-
-        x = self.state
-        cartx = x[0] * scale + screen_width / 2.0  # MIDDLE OF CART
-        self.carttrans.set_translation(cartx, carty)
-        self.poletrans.set_rotation(-x[2])
-
-        return self.viewer.render(return_rgb_array=mode == 'rgb_array')
+        print()
+        board_str = str(self.state[0]).replace('0.', ' ').replace('1.', 'O').replace('2.', 'X')
+        print(f'Player {self.state[1]}')
+        print(board_str)
 
     def close(self):
         if self.viewer:
