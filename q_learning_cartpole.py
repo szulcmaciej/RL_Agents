@@ -10,7 +10,7 @@ class Agent:
         pass
 
 
-class SimpleAgent(Agent):
+class SimpleAgentCartPole(Agent):
     def __init__(self, verbose=False):
         self.verbose = verbose
 
@@ -28,7 +28,7 @@ class SimpleAgent(Agent):
         return action
 
 
-class QAgent(Agent):
+class QAgentCartPole(Agent):
     def __init__(self):
         # self.states = np.zeros(shape=(4, 4, 4, 4))
         self.states = np.zeros(shape=(6, 6))
@@ -220,5 +220,5 @@ def save_agent(filename='q_agent.pkl'):
 
 if __name__ == '__main__':
     env = gym.make('CartPole-v0')
-    agent = QAgent()
+    agent = QAgentCartPole()
     results = play(200, verbose=False, random_scale=0.1)
