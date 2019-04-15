@@ -151,8 +151,10 @@ class TicTacToeEnv(gym.Env):
             center = (screen_width / 2, screen_height / 2)
             for i in range(self.board_size):
                 for j in range(self.board_size):
-                    self.render_x_positions[i, j] = center[0] + (i + 2 - self.board_size + ((self.board_size + 1)%2)/2) * (cell_size + cell_padding)
-                    self.render_y_positions[i, j] = center[1] + (j + 2 - self.board_size + ((self.board_size + 1)%2)/2) * (cell_size + cell_padding)
+                    self.render_x_positions[i, j] = i * (cell_size + cell_padding) + cell_size / 2
+                    self.render_y_positions[i, j] = j * (cell_size + cell_padding) + cell_size / 2
+                    # self.render_x_positions[i, j] = center[0] + (i + 2 - self.board_size + ((self.board_size + 1)%2)/2) * (cell_size + cell_padding)
+                    # self.render_y_positions[i, j] = center[1] + (j + 2 - self.board_size + ((self.board_size + 1)%2)/2) * (cell_size + cell_padding)
 
         # if no board, draw board
         if len(self.viewer.geoms) == 0:

@@ -14,9 +14,6 @@ register(
 )
 
 env = gym.make('TicTacToe-v0')
-observation = env.reset()
-
-print(observation)
 
 
 def play(games, random_scale=0.4, verbose=True):
