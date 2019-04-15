@@ -1,6 +1,8 @@
 from envs.tic_tac_toe import TicTacToeEnv
 from gym.envs.registration import registry, register, spec
 import gym
+import random
+import numpy as np
 
 env = TicTacToeEnv()
 
@@ -36,12 +38,17 @@ def play(games, random_scale=0.4, verbose=True):
                 env.render()
 
             # random_prob = random_scale * ((games - i) / games) ** 4
-            action = int(input('Action: '))
+            # action = int(input('Action: '))
+            available_moves = np.argwhere(prev_observation[0].flatten() == 0).reshape(-1,).tolist()
+            action = random.choice(available_moves)
             observation, reward, done, info = env.step(action)
             # reward = reward if not done else -10
             # agent.remember(prev_observation, action, observation, reward, done)
             # agent.experience_replay()
-            # prev_observation = observation
+            prev_observation = observation
+
+            if done and verbose:
+                env.render()
 
             cum_reward += reward
             steps += 1
@@ -57,4 +64,4 @@ def play(games, random_scale=0.4, verbose=True):
 
     return results
 
-play(1)
+play(2)
