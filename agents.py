@@ -31,7 +31,8 @@ class SimpleAgentCartPole(Agent):
 class QAgentCartPole(Agent):
     def __init__(self):
         # self.states = np.zeros(shape=(4, 4, 4, 4))
-        self.states = np.zeros(shape=(6, 6))
+        # self.states = np.zeros(shape=(6, 6))
+        self.states = np.zeros(shape=(6, 6, 6))
         # self.states = np.zeros(shape=(10, 10, 10, 10))
         self.q_table = np.zeros(shape=(np.size(self.states), 2))
         # self.q_table = np.random.randn(np.size(self.states), 2)
@@ -156,10 +157,11 @@ class QAgentCartPole(Agent):
         state = []
         state.append(int(np.digitize(observation[2], [-0.1, -0.02, 0, 0.02, 0.1])))
         state.append(int(np.digitize(observation[3], [-0.9, -0.1, 0, 0.1, 0.9])))
+        state.append(int(np.digitize(observation[0], [-0.3, -0.1, 0, 0.1, 0.3])))
 
         # print(f'state: {state}')
 
-        state_idx = state[0] + state[1] * 6
+        state_idx = state[0] + state[1] * 6 + state[2] * 36
         return state_idx
 
 

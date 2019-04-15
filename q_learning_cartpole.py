@@ -62,7 +62,11 @@ def save_agent(filename='q_agent.pkl'):
         pkl.dump(agent, file, pkl.HIGHEST_PROTOCOL)
 
 
+def show():
+    play(5, 0, True)
+
+
 if __name__ == '__main__':
     env = gym.make('CartPole-v0')
     agent = QAgentCartPole()
-    results = play(20, verbose=False, random_scale=0.1)
+    results = play(1000, verbose=False, random_scale=0.1)
