@@ -7,6 +7,8 @@ import gym
 from gym import spaces, logger
 from gym.utils import seeding
 import numpy as np
+from gym.envs.classic_control import rendering
+import time
 
 
 class TicTacToeEnv(gym.Env):
@@ -56,27 +58,21 @@ class TicTacToeEnv(gym.Env):
         'playing': 0.0
     }
 
-    def __init__(self):
+    def __init__(self, render_sleep_time=0.3):
         self.board_size = 3
 
-        # Angle limit set to 2 * theta_threshold_radians so failing observation is still within bounds
-
         self.action_space = spaces.Discrete(9)
-        # self.observation_space = spaces.Box(-high, high, dtype=np.float32)
         self.observation_space = spaces.Discrete(self.board_size ** 2 * 3 * 2)
-
-        #TODO usun to
-        # self.seed()
 
         self.viewer = None
         self.state = None
-
+        
+        self.render_x_positions = None
+        self.render_y_positions = None
+        self.render_sleep_time = render_sleep_time
+        
+        # TODO is it needed?
         self.steps_beyond_done = None
-
-    # TODO usun to
-    # def seed(self, seed=None):
-    #     self.np_random, seed = seeding.np_random(seed)
-    #     return [seed]
 
     def step(self, action):
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
@@ -84,8 +80,9 @@ class TicTacToeEnv(gym.Env):
         state = self.state
         board, player = state
 
-        action_board_pos = (action // self.board_size, action % self.board_size)
-        print(action_board_pos)
+        # action_board_pos = (action // self.board_size, action % self.board_size)
+        action_board_pos = divmod(action, self.board_size) #equal to line above
+        # print(action_board_pos)
         # check if move legal
         if board[action_board_pos[0], action_board_pos[1]] != 0:
             # illegal move
@@ -130,66 +127,71 @@ class TicTacToeEnv(gym.Env):
         # self.state = self.np_random.uniform(low=-0.05, high=0.05, size=(4,))
         self.state = [np.zeros(shape=(3,3)), 1]
         self.steps_beyond_done = None
+        if self.viewer:
+            self.viewer.geoms.clear()
         return self.state
 
-    # def render(self, mode='human'):
-    #     screen_width = 600
-    #     screen_height = 400
-    #
-    #     world_width = self.x_threshold * 2
-    #     scale = screen_width / world_width
-    #     carty = 100  # TOP OF CART
-    #     polewidth = 10.0
-    #     polelen = scale * (2 * self.length)
-    #     cartwidth = 50.0
-    #     cartheight = 30.0
-    #
-    #     if self.viewer is None:
-    #         from gym.envs.classic_control import rendering
-    #         self.viewer = rendering.Viewer(screen_width, screen_height)
-    #         l, r, t, b = -cartwidth / 2, cartwidth / 2, cartheight / 2, -cartheight / 2
-    #         axleoffset = cartheight / 4.0
-    #         cart = rendering.FilledPolygon([(l, b), (l, t), (r, t), (r, b)])
-    #         self.carttrans = rendering.Transform()
-    #         cart.add_attr(self.carttrans)
-    #         self.viewer.add_geom(cart)
-    #         l, r, t, b = -polewidth / 2, polewidth / 2, polelen - polewidth / 2, -polewidth / 2
-    #         pole = rendering.FilledPolygon([(l, b), (l, t), (r, t), (r, b)])
-    #         pole.set_color(.8, .6, .4)
-    #         self.poletrans = rendering.Transform(translation=(0, axleoffset))
-    #         pole.add_attr(self.poletrans)
-    #         pole.add_attr(self.carttrans)
-    #         self.viewer.add_geom(pole)
-    #         self.axle = rendering.make_circle(polewidth / 2)
-    #         self.axle.add_attr(self.poletrans)
-    #         self.axle.add_attr(self.carttrans)
-    #         self.axle.set_color(.5, .5, .8)
-    #         self.viewer.add_geom(self.axle)
-    #         self.track = rendering.Line((0, carty), (screen_width, carty))
-    #         self.track.set_color(0, 0, 0)
-    #         self.viewer.add_geom(self.track)
-    #
-    #         self._pole_geom = pole
-    #
-    #     if self.state is None: return None
-    #
-    #     # Edit the pole polygon vertex
-    #     pole = self._pole_geom
-    #     l, r, t, b = -polewidth / 2, polewidth / 2, polelen - polewidth / 2, -polewidth / 2
-    #     pole.v = [(l, b), (l, t), (r, t), (r, b)]
-    #
-    #     x = self.state
-    #     cartx = x[0] * scale + screen_width / 2.0  # MIDDLE OF CART
-    #     self.carttrans.set_translation(cartx, carty)
-    #     self.poletrans.set_rotation(-x[2])
-    #
-    #     return self.viewer.render(return_rgb_array=mode == 'rgb_array')
-
     def render(self, mode='human'):
-        print()
-        board_str = str(self.state[0]).replace('0.', ' ').replace('1.', 'O').replace('2.', 'X')
-        print(f'Player {self.state[1]}')
-        print(board_str)
+        cell_size = 100
+        cell_padding = 1
+        sign_relative_size = 0.7
+
+        screen_width = cell_size * self.board_size + cell_padding * (self.board_size - 1)
+        screen_height = cell_size * self.board_size + cell_padding * (self.board_size - 1)
+
+        if self.viewer is None:
+            self.viewer = rendering.Viewer(screen_width, screen_height)
+
+        if self.state is None:
+            return None
+
+        if self.render_x_positions is None or self.render_y_positions is None:
+            self.render_x_positions = np.zeros(shape=(self.board_size, self.board_size))
+            self.render_y_positions = np.zeros(shape=(self.board_size, self.board_size))
+            center = (screen_width / 2, screen_height / 2)
+            for i in range(self.board_size):
+                for j in range(self.board_size):
+                    self.render_x_positions[i, j] = center[0] + (i + 2 - self.board_size + ((self.board_size + 1)%2)/2) * (cell_size + cell_padding)
+                    self.render_y_positions[i, j] = center[1] + (j + 2 - self.board_size + ((self.board_size + 1)%2)/2) * (cell_size + cell_padding)
+
+        # if no board, draw board
+        if len(self.viewer.geoms) == 0:
+            for i in range(self.board_size):
+                for j in range(self.board_size):
+                    cell = rendering.FilledPolygon(
+                        [(self.render_x_positions[i, j] - cell_size / 2, self.render_y_positions[i, j] - cell_size / 2),
+                         (self.render_x_positions[i, j] - cell_size / 2, self.render_y_positions[i, j] + cell_size / 2),
+                         (self.render_x_positions[i, j] + cell_size / 2, self.render_y_positions[i, j] + cell_size / 2),
+                         (self.render_x_positions[i, j] + cell_size / 2, self.render_y_positions[i, j] - cell_size / 2)])
+                    # cell.set_color(0.5, 0.5, 0.5)
+                    self.viewer.add_geom(cell)
+
+        # fill board with game state
+        for i in range(self.board_size):
+            for j in range(self.board_size):
+                if self.state[0][i, j] == 1:
+                    circle = rendering.make_circle(cell_size * sign_relative_size / 2, filled=True)
+                    circle_trans = rendering.Transform(translation=(self.render_x_positions[i,j], self.render_y_positions[i, j]))
+                    circle.add_attr(circle_trans)
+                    circle.set_color(0, 0, 1)
+                    self.viewer.add_geom(circle)
+                if self.state[0][i, j] == 2:
+                    circle = rendering.make_circle(cell_size * sign_relative_size / 2, filled=True)
+                    circle_trans = rendering.Transform(translation=(self.render_x_positions[i,j], self.render_y_positions[i, j]))
+                    circle.add_attr(circle_trans)
+                    circle.set_color(1, 0, 0)
+                    self.viewer.add_geom(circle)
+
+        time.sleep(self.render_sleep_time)
+        return self.viewer.render(return_rgb_array=mode == 'rgb_array')
+
+    # console text render below
+
+    # def render(self, mode='human'):
+    #     print()
+    #     board_str = str(self.state[0]).replace('0.', ' ').replace('1.', 'O').replace('2.', 'X')
+    #     print(f'Player {self.state[1]}')
+    #     print(board_str)
 
     def close(self):
         if self.viewer:
