@@ -59,9 +59,9 @@ class TicTacToeEnv(gym.Env):
     }
 
     def __init__(self, render_sleep_time=0.3):
-        self.board_size = 3
+        self.board_size = 4
 
-        self.action_space = spaces.Discrete(9)
+        self.action_space = spaces.Discrete(self.board_size ** 2)
         self.observation_space = spaces.Discrete(self.board_size ** 2 * 3 * 2)
 
         self.viewer = None
@@ -125,7 +125,7 @@ class TicTacToeEnv(gym.Env):
 
     def reset(self):
         # self.state = self.np_random.uniform(low=-0.05, high=0.05, size=(4,))
-        self.state = [np.zeros(shape=(3,3)), 1]
+        self.state = [np.zeros(shape=(self.board_size, self.board_size)), 1]
         self.steps_beyond_done = None
         if self.viewer:
             self.viewer.geoms.clear()
