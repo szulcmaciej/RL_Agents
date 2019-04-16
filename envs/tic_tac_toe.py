@@ -4,6 +4,7 @@ My implementation of Tic Tac Toe for OpenAI gym
 
 import math
 import gym
+from gym.envs.registration import registry, register, spec
 from gym import spaces, logger
 from gym.utils import seeding
 import numpy as np
@@ -51,15 +52,16 @@ class TicTacToeEnv(gym.Env):
     }
 
     rewards = {
-        'win': 1.0,
-        'lose': -1.0,
-        'draw': 0.0,
+        'win': 10.0,
+        # 'lose': -1.0,
+        'draw': 1.0,
+        # 'draw': 0.0,
         'illegal': -100.0,
         'playing': 0.0
     }
 
     def __init__(self, render_sleep_time=0.3):
-        self.board_size = 4
+        self.board_size = 3
 
         self.action_space = spaces.Discrete(self.board_size ** 2)
         self.observation_space = spaces.Discrete(self.board_size ** 2 * 3 * 2)
@@ -79,6 +81,7 @@ class TicTacToeEnv(gym.Env):
         assert self.state is not None
         state = self.state
         board, player = state
+        info = {}
 
         # action_board_pos = (action // self.board_size, action % self.board_size)
         action_board_pos = divmod(action, self.board_size) #equal to line above
@@ -107,8 +110,10 @@ class TicTacToeEnv(gym.Env):
 
             if player_won:
                 reward = self.rewards['win']
+                info['result'] = player
             elif draw:
                 reward = self.rewards['draw']
+                info['result'] = 0
             else:
                 # still playing, change player
                 reward = self.rewards['playing']
@@ -121,7 +126,11 @@ class TicTacToeEnv(gym.Env):
 
         self.state = [board, player]
 
-        return self.state, reward, done, {}
+
+
+
+
+        return self.state, reward, done, info
 
     def reset(self):
         # self.state = self.np_random.uniform(low=-0.05, high=0.05, size=(4,))
@@ -199,3 +208,12 @@ class TicTacToeEnv(gym.Env):
         if self.viewer:
             self.viewer.close()
             self.viewer = None
+
+
+def register_env():
+    register(
+        id='TicTacToe-v0',
+        entry_point='envs.tic_tac_toe:TicTacToeEnv',
+        max_episode_steps=200,
+        reward_threshold=1.0,
+    )
