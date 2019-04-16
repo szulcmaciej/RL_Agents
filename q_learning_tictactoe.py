@@ -66,38 +66,50 @@ def play(games, env, agents, random_scale=0.4, verbose=True, display=False, plot
     env.close()
 
     if save:
-        save_agent()
+        for i, a in enumerate(agents):
+            if isinstance(a, QAgentTicTacToe):
+                save_agent(a, f'ttt_q_agent_{i+1}')
 
     if plot:
-        title = f'p1: {str(type(agents[0])).split("agents.")[1][:-2]}, p2: {str(type(agents[1])).split("agents.")[1][:-2]}'
-        plot_results(results, title)
+        plot_results(results, agents)
 
     return results
 
 
-def plot_results(results, title=''):
+def plot_results(results, agents):
     # results = results[-10:]
     # np.count_nonzero(results == 1)
     p1_wins = []
     p2_wins = []
     draws = []
     n = 500
+
     for i in range(len(results)):
         if i < n:
             last_n_results = np.array(results)[:i+1]
         else:
             last_n_results = np.array(results)[i-n:i+1]
+
         p1_wins.append(np.count_nonzero(last_n_results == 1) / len(last_n_results) * 100)
         p2_wins.append(np.count_nonzero(last_n_results == 2) / len(last_n_results) * 100)
         draws.append(np.count_nonzero(last_n_results == 0) / len(last_n_results) * 100)
+
+    # results = np.array(results)
+    #
+    # p1_wins = (moving_average(results == 1, n) * 100)
+    # p2_wins = (moving_average(results == 2, n) * 100)
+    # draws = (moving_average(results == 0, n) * 100)
+
     # y = p1_wins
-    x = range(len(results))
+    x = range(len(p1_wins))
     # plt.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)), color='r')
     # plt.scatter(x, y, marker='.')
     plt.plot(x, p1_wins, x, p2_wins, x, draws)
     plt.xlabel('game number')
-    plt.ylabel('percent')
-    plt.legend(['p1 wins', 'p2 wins', 'draws'])
+    plt.ylabel(f'percent of last {n} games')
+    agents_names = [str(type(a)).split("agents.")[1][:-2] for a in agents]
+    title = f'{agents_names[0]} vs {agents_names[1]}'
+    plt.legend([f'p1 ({agents_names[0]}) wins', f'p2 ({agents_names[1]}) wins', 'draws'])
     plt.title(title)
     # plt.plot(p2_wins, marker='.')
     # plt.plot(draws, marker='.')
@@ -105,13 +117,19 @@ def plot_results(results, title=''):
     plt.show()
 
 
-def save_agent(filename='q_agent.pkl'):
+def save_agent(agent, filename='q_agent.pkl'):
     with open(filename, 'wb+') as file:
         pkl.dump(agent, file, pkl.HIGHEST_PROTOCOL)
 
 
 def show(env, agents):
     play(5, env, agents, 0, display=True, plot=False)
+
+
+def moving_average(a, n=100) :
+    ret = np.cumsum(a, dtype=float)
+    ret[n:] = ret[n:] - ret[:-n]
+    return ret[n - 1:] / n
 
 
 # def compare_random_scales():
@@ -138,11 +156,11 @@ if __name__ == '__main__':
     register_env()
     board_size = 3
     env = gym.make('TicTacToe-v0')
-    # agents = [QAgentTicTacToe(1, board_size), RandomAgentTicTacToe()]
+    agents = [QAgentTicTacToe(1, board_size), RandomAgentTicTacToe()]
     # agents = [RandomAgentTicTacToe(), QAgentTicTacToe(2, board_size)]
     # agents = [RandomAgentTicTacToe(),  RandomAgentTicTacToe()]
-    agents = [QAgentTicTacToe(1, board_size), QAgentTicTacToe(2, board_size)]
-    results = play(10000, env, agents, verbose=False, plot=True, random_scale=0)
+    # agents = [QAgentTicTacToe(1, board_size), QAgentTicTacToe(2, board_size)]
+    results = play(30000, env, agents, verbose=True, plot=True, random_scale=0)
     # results = play(300, env, agents, display=False, random_scale=0, verbose=False)
 
     # q_table = np.array(list(agents[0].q_dict.values()))
@@ -152,4 +170,6 @@ if __name__ == '__main__':
     # print(q_table.size)
     # plot_results(results[::])
 
-    show(env, agents)
+    # plot_results(results[::10], agents)
+
+    # show(env, agents)
