@@ -3,10 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle as pkl
 import random
+# import math
 
 
 class Agent:
     def step(self, observation, reward, done, info):
+        pass
+
+    def act(self, observation, random_prob=0):
         pass
 
 
@@ -14,7 +18,7 @@ class SimpleAgentCartPole(Agent):
     def __init__(self, verbose=False):
         self.verbose = verbose
 
-    def step(self, observation, reward, done, info):
+    def act(self, observation, random_prob=0):
         random_part = np.random.randn() * 0.05
         action_cont = observation[2] + random_part
         action = int(max(np.sign(action_cont), 0))
@@ -28,11 +32,20 @@ class SimpleAgentCartPole(Agent):
         return action
 
 
+class QAgent(Agent):
+    def __init__(self):
+        self.memory = []
+        self.memory_size = 50
+        self.learning_rate = 0.99
+        self.discount_factor = 1
+        self.q_dict = None
+
+
 class QAgentCartPole(Agent):
     def __init__(self):
         # self.states = np.zeros(shape=(4, 4, 4, 4))
         # self.states = np.zeros(shape=(6, 6))
-        self.states = np.zeros(shape=(6, 6, 6))
+        self.states = np.zeros(shape=(6, 6, 3, 2))
         # self.states = np.zeros(shape=(10, 10, 10, 10))
         self.q_table = np.zeros(shape=(np.size(self.states), 2))
         # self.q_table = np.random.randn(np.size(self.states), 2)
@@ -106,8 +119,10 @@ class QAgentCartPole(Agent):
         if len(self.memory) > self.memory_size:
             self.memory.pop(0)
 
-    def experience_replay(self, batch_size=10):
+    def learn(self, batch_size=5):
         # batch = random.choices(self.memory, k=batch_size)
+        # batch = self.memory[-10:]
+        # random.shuffle(batch)
         batch = [self.memory[-1]]
         for x in batch:
             (state, action, next_state, reward, terminal) = x
@@ -155,9 +170,12 @@ class QAgentCartPole(Agent):
 
     def observation_to_state(self, observation):
         state = []
+        # state.append(int(np.digitize(observation[2], [-0.05, -0.01, 0, 0.01, 0.05])))
         state.append(int(np.digitize(observation[2], [-0.1, -0.02, 0, 0.02, 0.1])))
         state.append(int(np.digitize(observation[3], [-0.9, -0.1, 0, 0.1, 0.9])))
-        state.append(int(np.digitize(observation[0], [-0.3, -0.1, 0, 0.1, 0.3])))
+        # state.append(int(np.digitize(observation[3], [-0.5, -0.1, 0, 0.1, 0.5])))
+        state.append(int(np.digitize(observation[0], [-0.9, 0.9])))
+        state.append(int(np.digitize(observation[1], [0])))
 
         # print(f'state: {state}')
 
@@ -165,10 +183,118 @@ class QAgentCartPole(Agent):
         return state_idx
 
 
-class QAgentTicTacToe(Agent):
-    def step(self, observation, reward, done, info):
-        board, player = observation
+class QAgentTicTacToe(QAgent):
+    def __init__(self, player_number, board_size=3):
+        QAgent.__init__(self)
+        self.player_number = player_number
+        self.board_size = board_size
+        self.q_dict = {}
+        # self.q_table = np.zeros(shape=(3 ** (board_size ** 2), board_size ** 2))
 
+    def act(self, observation, random_prob=0):
+        state = self.observation_to_state(observation)
+
+        available_actions = self.get_available_actions(state)
+
+        state_q_values = self.get_q_values_for_state(state)
+        if np.random.rand() < random_prob:
+            # random available action
+            action = random.choice(available_actions)
+        else:
+            # random available action with maximum q value
+            max_q = np.max(state_q_values)
+            max_q_actions = np.argwhere(state_q_values == max_q).flatten().tolist()
+            max_q_actions = [a for a in max_q_actions if a in available_actions]
+            action = random.choice(max_q_actions)
+
+        action = int(round(action))
+
+        # if action not in available_actions:
+        #     print('ILLEGALLLLLLLLLLLLLLLLLLL')
+        #     print(state)
+        #     print(state_q_values)
+        #     print(observation[0])
+        #     print(action)
+
+        return action
+
+    def get_q_values_for_state(self, state):
+        if state not in self.q_dict:
+            # add state to dict, assign -inf value to illegal moves
+            available_actions = self.get_available_actions(state)
+            state_q_values = np.zeros(shape=(self.board_size ** 2,))
+            for i in range(len(state_q_values)):
+                if i not in available_actions:
+                    # state_q_values[i] = -np.inf
+                    state_q_values[i] = -1000
+            self.q_dict[state] = state_q_values
+        # if np.count_nonzero(self.q_dict[state] == -1000) == self.board_size ** 2 and '0' in state:
+        #     print('all -inf')
+        #     print(state)
+        #     print()
+        return self.q_dict[state]
+
+    def remember(self, prev_observation, action, observation, reward, terminal):
+        state = self.observation_to_state(prev_observation)
+        next_state = self.observation_to_state(observation)
+        self.get_q_values_for_state(next_state)
+        self.memory.append((state, action, next_state, reward, terminal))
+        if len(self.memory) > self.memory_size:
+            self.memory.pop(0)
+
+    def learn(self):
+        batch = [self.memory[-1]]
+        for x in batch:
+            (state, action, next_state, reward, terminal) = x
+            self.q_dict[state][action] = \
+                (1 - self.learning_rate) * self.q_dict[state][action] \
+                + self.learning_rate * (reward + self.discount_factor * np.max(self.q_dict[next_state]))
+
+    def observation_to_state(self, observation):
+        '''
+        Returns string representation of state, eg. '201020112'
+        :param observation:
+        :return:
+        '''
+        board, player = observation
+        if self.player_number == 1:
+            opponent = 2
+        else:
+            opponent = 1
+
+        # TODO check if necessary
+        # board_perspective is board transformed in a way that current player is always identified with 1
+        board_perspective = np.zeros(shape=board.shape)
+        board_perspective = board_perspective + (board == self.player_number)
+        board_perspective = board_perspective + (board == opponent) * 2
+
+        board = board_perspective.reshape(-1).tolist()
+        state = ''.join(map(str, map(int, board)))
+        # state_id = int(state, 3)
+        return state
+
+    # def count_all_possible_states(self, board):
+    #     if board is None:
+    #         board = np.zeros(shape=(self.board_size, self.board_size))
+    #     indices = np.argwhere(board == 0)
+    #     count = 1
+    #     for ind in indices:
+    #         for p in [0, 1]:
+    #             board_copy = board.copy()
+    #             board_copy[ind[0, 0], ind[0, 1]] = p
+    #             count += self.count_all_possible_states(board_copy)
+    #     return count
+    @staticmethod
+    def get_available_actions(state):
+        return [i for i, char in enumerate(state) if char == '0']
+
+
+class RandomAgentTicTacToe(Agent):
+    def act(self, observation, random_prob=0):
+        board = observation[0]
+        board = board.reshape(-1).tolist()
+        legal_actions = [i for i, p in enumerate(board) if p == 0]
+        return random.choice(legal_actions)
 
 
 def save_agent(agent, filename='q_agent.pkl'):

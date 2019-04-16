@@ -1,18 +1,10 @@
-from envs.tic_tac_toe import TicTacToeEnv
-from gym.envs.registration import registry, register, spec
+from envs.tic_tac_toe import register_env
 import gym
 import random
 import numpy as np
 
-env = TicTacToeEnv()
 
-register(
-    id='TicTacToe-v0',
-    entry_point='envs.tic_tac_toe:TicTacToeEnv',
-    max_episode_steps=200,
-    reward_threshold=1.0,
-)
-
+register_env()
 env = gym.make('TicTacToe-v0')
 
 
