@@ -184,10 +184,9 @@ class QAgentCartPole(Agent):
 
 
 class QAgentTicTacToe(QAgent):
-    def __init__(self, player_number, board_size=3):
+    def __init__(self, player_number):
         QAgent.__init__(self)
         self.player_number = player_number
-        self.board_size = board_size
         self.q_dict = {}
         # self.q_table = np.zeros(shape=(3 ** (board_size ** 2), board_size ** 2))
 
@@ -220,18 +219,14 @@ class QAgentTicTacToe(QAgent):
 
     def get_q_values_for_state(self, state):
         if state not in self.q_dict:
-            # add state to dict, assign -inf value to illegal moves
+            # add state to dict, assign -1000 value to illegal moves
             available_actions = self.get_available_actions(state)
-            state_q_values = np.zeros(shape=(self.board_size ** 2,))
+            state_q_values = np.zeros(shape=(len(state),))
             for i in range(len(state_q_values)):
                 if i not in available_actions:
                     # state_q_values[i] = -np.inf
                     state_q_values[i] = -1000
             self.q_dict[state] = state_q_values
-        # if np.count_nonzero(self.q_dict[state] == -1000) == self.board_size ** 2 and '0' in state:
-        #     print('all -inf')
-        #     print(state)
-        #     print()
         return self.q_dict[state]
 
     def remember(self, prev_observation, action, observation, reward, terminal):

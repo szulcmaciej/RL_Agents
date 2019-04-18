@@ -39,18 +39,10 @@ def play(games, random_scale=0.4, verbose=True):
             if done and verbose:
                 env.render()
 
-            cum_reward += reward
-            steps += 1
-
         results.append(steps)
         # print(f'game {i} finished after {steps} steps' + '*'.rjust(steps, '|'))
 
     env.close()
 
-    # plot_results(results)
-
-    # print(f'ones: {sum(actions)}/{len(actions)}')
-
-    return results
-
-play(2)
+if __name__ == '__main__':
+    play(2)

@@ -154,12 +154,11 @@ def moving_average(a, n=100) :
 
 if __name__ == '__main__':
     register_env()
-    board_size = 3
     env = gym.make('TicTacToe-v0')
-    agents = [QAgentTicTacToe(1, board_size), RandomAgentTicTacToe()]
-    # agents = [RandomAgentTicTacToe(), QAgentTicTacToe(2, board_size)]
+    agents = [QAgentTicTacToe(1), RandomAgentTicTacToe()]
+    # agents = [RandomAgentTicTacToe(), QAgentTicTacToe(2)]
     # agents = [RandomAgentTicTacToe(),  RandomAgentTicTacToe()]
-    # agents = [QAgentTicTacToe(1, board_size), QAgentTicTacToe(2, board_size)]
+    # agents = [QAgentTicTacToe(1), QAgentTicTacToe(2)]
     results = play(30000, env, agents, verbose=True, plot=True, random_scale=0)
     # results = play(300, env, agents, display=False, random_scale=0, verbose=False)
 
