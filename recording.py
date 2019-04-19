@@ -28,7 +28,6 @@ def play(games, env, agents, random_scale=0.4, verbose=True, display=False, plot
             agent = agents[player_id - 1]
             opponent = agents[1] if player_id == 1 else agents[0]
 
-            # TODO fix - observation equals prev_observation in agent.remember()
             random_prob = random_scale * ((games - i) / games) ** 4
             action = agent.act(prev_observation, random_prob=random_prob)
             # prev_observation = observation.copy()
