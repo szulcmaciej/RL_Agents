@@ -204,7 +204,13 @@ class QAgentTicTacToe(QAgent):
             max_q = np.max(state_q_values)
             max_q_actions = np.argwhere(state_q_values == max_q).flatten().tolist()
             max_q_actions = [a for a in max_q_actions if a in available_actions]
-            action = random.choice(max_q_actions)
+            try:
+                action = random.choice(max_q_actions)
+            except IndexError:
+                print('Max q action not in available actions')
+                print(f'state: {state}')
+                # print('')
+                action = random.choice(available_actions)
 
         action = int(round(action))
 

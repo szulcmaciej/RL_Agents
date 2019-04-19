@@ -61,7 +61,7 @@ class TicTacToeEnv(gym.Env):
     }
 
     def __init__(self, render_sleep_time=0.3):
-        self.board_size = 3
+        self.board_size = 4
 
         self.action_space = spaces.Discrete(self.board_size ** 2)
         self.observation_space = spaces.Discrete(self.board_size ** 2 * 3 * 2)

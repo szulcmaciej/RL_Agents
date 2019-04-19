@@ -60,7 +60,7 @@ def play(games, env, agents, random_scale=0.4, verbose=True, display=False, plot
             steps += 1
 
         results.append(info["result"])
-        if verbose:
+        if verbose and i % 1000 == 0:
             print(f'GAME {i} winner: {info["result"]}')
 
     env.close()
@@ -79,26 +79,27 @@ def play(games, env, agents, random_scale=0.4, verbose=True, display=False, plot
 def plot_results(results, agents):
     # results = results[-10:]
     # np.count_nonzero(results == 1)
-    p1_wins = []
-    p2_wins = []
-    draws = []
-    n = 500
 
-    for i in range(len(results)):
-        if i < n:
-            last_n_results = np.array(results)[:i+1]
-        else:
-            last_n_results = np.array(results)[i-n:i+1]
+    n = 1000
 
-        p1_wins.append(np.count_nonzero(last_n_results == 1) / len(last_n_results) * 100)
-        p2_wins.append(np.count_nonzero(last_n_results == 2) / len(last_n_results) * 100)
-        draws.append(np.count_nonzero(last_n_results == 0) / len(last_n_results) * 100)
+    if len(results) <= 10000:
+        p1_wins = []
+        p2_wins = []
+        draws = []
+        for i in range(len(results)):
+            if i < n:
+                last_n_results = np.array(results)[:i+1]
+            else:
+                last_n_results = np.array(results)[i-n:i+1]
 
-    # results = np.array(results)
-    #
-    # p1_wins = (moving_average(results == 1, n) * 100)
-    # p2_wins = (moving_average(results == 2, n) * 100)
-    # draws = (moving_average(results == 0, n) * 100)
+            p1_wins.append(np.count_nonzero(last_n_results == 1) / len(last_n_results) * 100)
+            p2_wins.append(np.count_nonzero(last_n_results == 2) / len(last_n_results) * 100)
+            draws.append(np.count_nonzero(last_n_results == 0) / len(last_n_results) * 100)
+    else:
+        results = np.array(results)
+        p1_wins = (moving_average(results == 1, n) * 100)
+        p2_wins = (moving_average(results == 2, n) * 100)
+        draws = (moving_average(results == 0, n) * 100)
 
     # y = p1_wins
     x = range(len(p1_wins))
@@ -117,7 +118,7 @@ def plot_results(results, agents):
     plt.show()
 
 
-def save_agent(agent, filename='q_agent.pkl'):
+def save_agent(agent, filename='saved_agents/q_agent.pkl'):
     with open(filename, 'wb+') as file:
         pkl.dump(agent, file, pkl.HIGHEST_PROTOCOL)
 
@@ -155,11 +156,12 @@ def moving_average(a, n=100) :
 if __name__ == '__main__':
     register_env()
     env = gym.make('TicTacToe-v0')
-    agents = [QAgentTicTacToe(1), RandomAgentTicTacToe()]
-    # agents = [RandomAgentTicTacToe(), QAgentTicTacToe(2)]
+    # agents = [QAgentTicTacToe(1), RandomAgentTicTacToe()]
+    agents = [RandomAgentTicTacToe(), QAgentTicTacToe(2)]
+    # agents[2].discount_factor = 0.9
     # agents = [RandomAgentTicTacToe(),  RandomAgentTicTacToe()]
     # agents = [QAgentTicTacToe(1), QAgentTicTacToe(2)]
-    results = play(30000, env, agents, verbose=True, plot=True, random_scale=0)
+    results = play(10000000, env, agents, verbose=True, plot=True, random_scale=0)
     # results = play(300, env, agents, display=False, random_scale=0, verbose=False)
 
     # q_table = np.array(list(agents[0].q_dict.values()))
