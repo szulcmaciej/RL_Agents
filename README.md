@@ -20,13 +20,13 @@ As there are many states that are impossible to reach (or almost imposiible if y
 ![Random vs Random](https://i.imgur.com/66G8fYA.png "Random vs Random")
 ![QAgent vs QAgent](https://i.imgur.com/Si9pTGo.png "QAgent vs QAgent")
 ---
-## 4x4 board results
-###Random vs QAgent
-###300 000 games
+### 4x4 board results
+####Random vs QAgent
+####300 000 games
 ![Random vs QAgent](https://raw.githubusercontent.com/szulcmaciej/RL_Agents/master/results/Random_vs_QAgent_4x4.png "Random vs QAgent")
-###1 000 000 games
+####1 000 000 games
 ![Random vs QAgent](https://raw.githubusercontent.com/szulcmaciej/RL_Agents/master/results/Random_vs_QAgent_4x4_million_games.png "Random vs QAgent")
-###10 000 000 games
+####10 000 000 games
 ![Random vs QAgent](https://raw.githubusercontent.com/szulcmaciej/RL_Agents/master/results/Random_vs_QAgent_4x4_10_million_games.png "Random vs QAgent")
 ---
 # CartPole-v0 environment
