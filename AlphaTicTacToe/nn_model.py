@@ -53,7 +53,7 @@ class ResidualCNN:
         x = Conv2D(
             filters=filters
             , kernel_size=kernel_size
-            , data_format="channels_first"
+            # , data_format="channels_first"
             , padding='same'
             , use_bias=False
             , activation='linear'
@@ -73,7 +73,7 @@ class ResidualCNN:
         x = Conv2D(
             filters=filters
             , kernel_size=kernel_size
-            , data_format="channels_first"
+            # , data_format="channels_first"
             , padding='same'
             , use_bias=False
             , activation='linear'
@@ -90,7 +90,7 @@ class ResidualCNN:
         x = Conv2D(
             filters=1
             , kernel_size=(1, 1)
-            , data_format="channels_first"
+            # , data_format="channels_first"
             , padding='same'
             , use_bias=False
             , activation='linear'
@@ -126,7 +126,7 @@ class ResidualCNN:
         x = Conv2D(
             filters=2
             , kernel_size=(1, 1)
-            , data_format="channels_first"
+            # , data_format="channels_first"
             , padding='same'
             , use_bias=False
             , activation='linear'
@@ -141,7 +141,8 @@ class ResidualCNN:
         x = Dense(
             self.output_dim
             , use_bias=False
-            , activation='linear'
+            # , activation='linear'
+            , activation='softmax'
             , kernel_regularizer=regularizers.l2(self.reg_const)
             , name='policy_head'
         )(x)
