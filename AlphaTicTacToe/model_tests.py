@@ -34,7 +34,7 @@ def train_model():
                                        {'filters': 64, 'kernel_size': 3}, ],
                         momentum=0.9)
 
-    batch_size = 100
+    batch_size = 1000
     # training_states = np.zeros(shape=(batch_size, *model.input_dim))
     training_states = np.random.randint(0, 2, size=(batch_size, *model.input_dim))
     training_states[:,2,:,:] = np.zeros(shape=(training_states.shape[0], *(training_states.shape[2:])))
@@ -58,17 +58,26 @@ def train_model():
 
     training_targets = [values, pis]
 
-    fit = model.model.fit(training_states, training_targets, epochs=100, verbose=2, validation_split=0, batch_size=64)
+    fit = model.model.fit(training_states, training_targets, epochs=40, verbose=2, validation_split=0, batch_size=64)
+
+    # model.model.load_weights('../saved_models/model_weights.h5')
 
     pred = model.model.predict(training_states[:1])
+    print('value')
+    print('real')
+    print(training_targets[0][0])
     print('pred')
-    print(pred)
-    print('targets')
-    print(training_targets[:1])
+    print(pred[0])
+    print()
 
-    # plt.plot(fit.history['loss'])
-    # plt.plot(fit.history['value_head_loss'])
-    # plt.plot(fit.history['policy_head_loss'])
+    print('policy')
+    print('real')
+    print(training_targets[1][0])
+    print('pred')
+    print(pred[1])
+
+    score = model.model.evaluate(training_states[:1], [training_targets[0][:1], training_targets[1][:1]])
+    print(score)
 
     plt.plot('loss', data=fit.history, marker='.', markerfacecolor='blue', markersize=12, color='skyblue', linewidth=3, label='loss')
     plt.plot('value_head_loss', data=fit.history, marker='.', markerfacecolor='yellow', markersize=12, color='lightyellow', linewidth=3, label='value_head_loss')
@@ -76,6 +85,8 @@ def train_model():
     plt.legend()
     plt.xlabel('Epoch')
     plt.show()
+
+    model.model.save_weights('../saved_models/model_weights.h5')
 
 
 if __name__ == '__main__':
