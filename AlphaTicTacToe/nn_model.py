@@ -260,7 +260,7 @@ class ResidualCNN(GenModel):
         # model.compile(loss={'value_head': 'mean_squared_error', 'policy_head': 'mean_squared_error'},
         # model.compile(loss={'value_head': 'mean_squared_error', 'policy_head': 'categorical_crossentropy'},
                       optimizer=SGD(lr=self.learning_rate, momentum=self.momentum),
-                      loss_weights={'value_head': 1, 'policy_head': 1}
+                      loss_weights={'value_head': 1, 'policy_head': 1 / (self.input_dim[0] *self.input_dim[1])}
                       )
 
         return model
