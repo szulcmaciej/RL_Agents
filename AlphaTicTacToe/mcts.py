@@ -7,7 +7,7 @@ import config
 class Node:
     def __init__(self, state):
         self.state = state
-        self.id = state.id
+        self.id = self.state.id
         self.player_turn = state.player_turn
         self.edges = []
 
@@ -123,5 +123,5 @@ class MCTS:
 
             # edge.outNode.state.render(lg.logger_mcts)
 
-    def addNode(self, node):
+    def add_node(self, node):
         self.tree[node.id] = node

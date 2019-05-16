@@ -1,3 +1,6 @@
+#### GAME
+BOARD_SIZE = 3
+
 #### SELF PLAY
 EPISODES = 30
 MCTS_SIMS = 50
