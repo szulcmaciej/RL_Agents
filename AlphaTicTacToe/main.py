@@ -51,9 +51,9 @@ else:
 ######## LOAD MODEL IF NECESSARY ########
 
 # create an untrained neural network objects from the config file
-current_NN = ResidualCNN(config.REG_CONST, config.LEARNING_RATE, (2,) + env.grid_shape, env.action_size,
+current_NN = ResidualCNN(config.REG_CONST, config.LEARNING_RATE, (3,) + env.grid_shape, env.action_size,
                           config.HIDDEN_CNN_LAYERS, config.MOMENTUM)
-best_NN = ResidualCNN(config.REG_CONST, config.LEARNING_RATE, (2,) + env.grid_shape, env.action_size,
+best_NN = ResidualCNN(config.REG_CONST, config.LEARNING_RATE, (3,) + env.grid_shape, env.action_size,
                        config.HIDDEN_CNN_LAYERS, config.MOMENTUM)
 
 # If loading an existing neural netwrok, set the weights from that model
@@ -70,7 +70,7 @@ else:
 
 # copy the config file to the run folder
 copyfile('./config.py', run_folder + 'config.py')
-plot_model(current_NN.model, to_file=run_folder + 'models/model.png', show_shapes=True)
+# plot_model(current_NN.model, to_file=run_folder + 'models/model.png', show_shapes=True)
 
 print('\n')
 

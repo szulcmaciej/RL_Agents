@@ -8,19 +8,19 @@ class Node:
     def __init__(self, state):
         self.state = state
         self.id = self.state.id
-        self.player_turn = state.player_turn
+        self.player_turn = state.playerTurn
         self.edges = []
 
-    def is_leaf(self):
+    def isLeaf(self):
         return len(self.edges) == 0
 
 
 class Edge:
     def __init__(self, in_node, out_node, prior, action):
-        self.in_node = in_node
-        self.out_node = out_node
+        self.inNode = in_node
+        self.outNode = out_node
         self.action = action
-        self.playerTurn = self.in_node.state.playerTurn
+        self.playerTurn = self.inNode.state.playerTurn
 
         self.stats = {
             'N': 0,
@@ -31,7 +31,6 @@ class Edge:
 
 
 class MCTS:
-    # TODO modify for tic tac toe
     def __init__(self, root, cpuct):
         self.root = root
         self.tree = {}

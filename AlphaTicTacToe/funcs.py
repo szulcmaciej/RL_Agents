@@ -69,12 +69,12 @@ def playMatches(player1, player2, EPISODES, logger, turns_until_tau0, memory=Non
 
         if player1Starts == 1:
             players = {1: {"agent": player1, "name": player1.name}
-                , -1: {"agent": player2, "name": player2.name}
+                , 2: {"agent": player2, "name": player2.name}
                        }
             # logger.info(player1.name + ' plays as X')
         else:
             players = {1: {"agent": player2, "name": player2.name}
-                , -1: {"agent": player1, "name": player1.name}
+                , 2: {"agent": player1, "name": player1.name}
                        }
             # logger.info(player2.name + ' plays as X')
             # logger.info('--------------')
@@ -83,6 +83,9 @@ def playMatches(player1, player2, EPISODES, logger, turns_until_tau0, memory=Non
 
         while done == 0:
             turn = turn + 1
+
+            # print(str(state.board).replace('0', '.').replace('1', 'o').replace('2', 'x'))
+            # print()
 
             #### Run the MCTS algo and return an action
             if turn < turns_until_tau0:
@@ -129,7 +132,8 @@ def playMatches(player1, player2, EPISODES, logger, turns_until_tau0, memory=Non
 
                 elif value == -1:
                     # logger.info('%s WINS!', players[-state.playerTurn]['name'])
-                    scores[players[-state.playerTurn]['name']] = scores[players[-state.playerTurn]['name']] + 1
+                    opponent = 1 if state.playerTurn == 2 else 1
+                    scores[players[opponent]['name']] = scores[players[opponent]['name']] + 1
 
                     if state.playerTurn == 1:
                         sp_scores['nsp'] = sp_scores['nsp'] + 1
@@ -143,6 +147,7 @@ def playMatches(player1, player2, EPISODES, logger, turns_until_tau0, memory=Non
 
                 pts = state.score
                 points[players[state.playerTurn]['name']].append(pts[0])
-                points[players[-state.playerTurn]['name']].append(pts[1])
+                opponent = 1 if state.playerTurn == 2 else 1
+                points[players[opponent]['name']].append(pts[1])
 
     return scores, memory, points, sp_scores

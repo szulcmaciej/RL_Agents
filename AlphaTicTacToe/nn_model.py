@@ -265,6 +265,15 @@ class ResidualCNN(GenModel):
 
         return model
 
+    def convertToModelInput(self, state):
+        numpy_board = state.board
+        nn_board = np.zeros(shape=(3, numpy_board.shape[0], numpy_board.shape[1]))
+        nn_board[0, :, :] = (numpy_board == 1)
+        nn_board[1, :, :] = (numpy_board == 2)
+        nn_board[2, :, :] = state.playerTurn - 1
+
+        return nn_board
+
     # def _build_model(self):
     #
     #     main_input = Input(shape=self.input_dim, name='main_input')

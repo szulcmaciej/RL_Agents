@@ -40,6 +40,10 @@ class AlphaTicTacToeAgent:
         self.cpuct = cpuct
         self.name = name
 
+        self.train_overall_loss = []
+        self.train_value_loss = []
+        self.train_policy_loss = []
+
     def step(self, game_state, player_number):
         pass
 
@@ -50,7 +54,7 @@ class AlphaTicTacToeAgent:
         # lg.logger_mcts.info('CURRENT PLAYER...%d', self.mcts.root.state.playerTurn)
 
         ##### MOVE THE LEAF NODE
-        leaf, value, done, breadcrumbs = self.mcts.moveToLeaf()
+        leaf, value, done, breadcrumbs = self.mcts.move_to_leaf()
         # leaf.state.render(lg.logger_mcts)
 
         ##### EVALUATE THE LEAF NODE
@@ -61,7 +65,7 @@ class AlphaTicTacToeAgent:
 
     def get_preds(self, state):
         # predict the leaf
-        inputToModel = np.array([self.convert_board_state_for_nn(state)])
+        inputToModel = np.array([self.convert_board_state_for_nn(state.board)])
 
         preds = self.model.predict(inputToModel)
         value_array = preds[0]
@@ -70,7 +74,7 @@ class AlphaTicTacToeAgent:
 
         logits = logits_array[0]
 
-        allowedActions = self.allowed_actions(state)
+        allowedActions = self.allowed_actions(state.board)
 
         mask = np.ones(logits.shape, dtype=bool)
         mask[allowedActions] = False
@@ -102,7 +106,7 @@ class AlphaTicTacToeAgent:
                 newState, _, _ = leaf.state.takeAction(action)
                 if newState.id not in self.mcts.tree:
                     node = mc.Node(newState)
-                    self.mcts.addNode(node)
+                    self.mcts.add_node(node)
                     # lg.logger_mcts.info('added node...%s...p = %f', node.id, probs[idx])
                 else:
                     node = self.mcts.tree[newState.id]
@@ -182,7 +186,7 @@ class AlphaTicTacToeAgent:
                 , 'policy_head': np.array([row['AV'] for row in minibatch])}
 
             fit = self.model.fit(training_states, training_targets, epochs=config.EPOCHS, verbose=1, validation_split=0,
-                                 batch_size=config.BATCH_SIZE)
+                                 batch_size=config.MINI_BATCH_SIZE)
             # lg.logger_mcts.info('NEW LOSS %s', fit.history)
 
             self.train_overall_loss.append(round(fit.history['loss'][config.EPOCHS - 1], 4))

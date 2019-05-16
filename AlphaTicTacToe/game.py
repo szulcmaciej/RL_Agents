@@ -12,7 +12,7 @@ class Game:
         self.grid_shape = (board_size, board_size)
         # self.input_shape = (2, board_size, board_size)
         self.name = 'tic_tac_toe'
-        self.state_size = len(self.gameState.binary)
+        self.state_size = self.gameState.board.shape[0]
         self.action_size = len(self.actionSpace)
 
     def reset(self):
