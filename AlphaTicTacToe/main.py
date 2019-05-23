@@ -95,7 +95,7 @@ while 1:
     ######## SELF PLAY ########
     print('SELF PLAYING ' + str(config.EPISODES) + ' EPISODES...')
     _, memory, _, _ = playMatches(best_player, best_player, config.EPISODES, None,
-                                  turns_until_tau0=config.TURNS_UNTIL_TAU0, memory=memory)
+                                  turns_until_tau0=config.TURNS_UNTIL_TAU0, memory=memory, board_size=config.BOARD_SIZE)
     print('\n')
 
     memory.clear_stmemory()
@@ -133,7 +133,8 @@ while 1:
 
         ######## TOURNAMENT ########
         print('TOURNAMENT...')
-        scores, _, points, sp_scores = playMatches(best_player, current_player, config.EVAL_EPISODES, None, turns_until_tau0=0, memory=None)
+        scores, _, points, sp_scores = playMatches(best_player, current_player, config.EVAL_EPISODES,
+                                                   None, turns_until_tau0=0, memory=None, board_size=config.BOARD_SIZE)
         print('\nSCORES')
         print(scores)
         print('\nSTARTING PLAYER / NON-STARTING PLAYER SCORES')

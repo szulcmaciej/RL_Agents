@@ -1,5 +1,5 @@
 #### GAME
-BOARD_SIZE = 3
+BOARD_SIZE = 4
 
 #### SELF PLAY
 EPISODES = 30
@@ -20,12 +20,12 @@ MOMENTUM = 0.9
 TRAINING_LOOPS = 10
 
 HIDDEN_CNN_LAYERS = [
-    {'filters': 64, 'kernel_size': (3, 3)}
-    , {'filters': 64, 'kernel_size': (3, 3)}
-    , {'filters': 64, 'kernel_size': (3, 3)}
-    , {'filters': 64, 'kernel_size': (3, 3)}
-    , {'filters': 64, 'kernel_size': (3, 3)}
-    , {'filters': 64, 'kernel_size': (3, 3)}
+    {'filters': 16, 'kernel_size': (3, 3)}
+    , {'filters': 16, 'kernel_size': (3, 3)}
+    # , {'filters': 64, 'kernel_size': (3, 3)}
+    # , {'filters': 64, 'kernel_size': (3, 3)}
+    # , {'filters': 64, 'kernel_size': (3, 3)}
+    # , {'filters': 64, 'kernel_size': (3, 3)}
 ]
 
 #### EVALUATION
@@ -35,5 +35,5 @@ SCORING_THRESHOLD = 1.3
 
 
 MEMORY_SIZE = 1000
-EPISODES = 100
-MCTS_SIMS = 50
+EPISODES = 10
+MCTS_SIMS = 10

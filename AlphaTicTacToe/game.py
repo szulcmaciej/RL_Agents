@@ -25,7 +25,7 @@ class Game:
         self.gameState = next_state
         self.currentPlayer = 2 if self.currentPlayer == 1 else 1
         info = None
-        return ((next_state, value, done, info))
+        return next_state, value, done, info
 
     def identities(self, state, actionValues):
         identities = [(state, actionValues)]

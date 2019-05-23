@@ -16,8 +16,10 @@ def playMatchesBetweenVersions(env, run_version, player1version, player2version,
     if player1version == -1:
         player1 = User('player1', env.state_size, env.action_size)
     else:
-        player1_NN = ResidualCNN(config.REG_CONST, config.LEARNING_RATE, env.input_shape, env.action_size,
-                                  config.HIDDEN_CNN_LAYERS, config.MOMENTUM)
+        player1_NN = ResidualCNN(config.REG_CONST, config.LEARNING_RATE, (3,) + env.grid_shape, env.action_size,
+                                 config.HIDDEN_CNN_LAYERS, config.MOMENTUM)
+        # player1_NN = ResidualCNN(config.REG_CONST, config.LEARNING_RATE, env.input_shape, env.action_size,
+        #                           config.HIDDEN_CNN_LAYERS, config.MOMENTUM)
 
         if player1version > 0:
             player1_network = player1_NN.read(env.name, run_version, player1version)
@@ -27,8 +29,8 @@ def playMatchesBetweenVersions(env, run_version, player1version, player2version,
     if player2version == -1:
         player2 = User('player2', env.state_size, env.action_size)
     else:
-        player2_NN = ResidualCNN(config.REG_CONST, config.LEARNING_RATE, env.input_shape, env.action_size,
-                                  config.HIDDEN_CNN_LAYERS, config.MOMENTUM)
+        player2_NN = ResidualCNN(config.REG_CONST, config.LEARNING_RATE, (3,) + env.grid_shape, env.action_size,
+                                 config.HIDDEN_CNN_LAYERS, config.MOMENTUM)
 
         if player2version > 0:
             player2_network = player2_NN.read(env.name, run_version, player2version)
@@ -112,6 +114,9 @@ def playMatches(player1, player2, EPISODES, logger, turns_until_tau0, memory=Non
             # env.gameState.render(logger)
 
             if done == 1:
+                print(str(state.board).replace('0', '.').replace('1', 'o').replace('2', 'x'))
+                print()
+
                 if memory != None:
                     #### If the game is finished, assign the values correctly to the game moves
                     for move in memory.stmemory:
@@ -151,3 +156,8 @@ def playMatches(player1, player2, EPISODES, logger, turns_until_tau0, memory=Non
                 points[players[opponent]['name']].append(pts[1])
 
     return scores, memory, points, sp_scores
+
+
+if __name__ == '__main__':
+    env = Game(config.BOARD_SIZE)
+    playMatchesBetweenVersions(env, 1, -1, 3, 5, None, 10, goes_first=0, board_size=config.BOARD_SIZE)
