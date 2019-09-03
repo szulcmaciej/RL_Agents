@@ -9,7 +9,7 @@ Environment includes GUI rendering of the game.
 
 ## Results
 Two agents were implemented:
-- RandomAgentTicTacToe - an agent choosing radnom legal action.
+- RandomAgentTicTacToe - an agent choosing random legal action.
 - QAgentTicTacToe - an agent using q-learning to learn actions quality
 
 As there are many states that are impossible to reach (or almost imposiible if you let agents do illegal actions), Q-learning was implemented using a dict to store q-values for state-actions. A game state is only added to dict if occured during agent's game.
